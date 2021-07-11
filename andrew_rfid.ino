@@ -10,10 +10,13 @@
 
 // Define authorized cards
 String MasterTag1 = "977AE2B5";
-String OwnerCard1 = "";
+vector<String> accessCards;
 
 // Define future string for user card
 String inputCard = "";
+bool adminMode = false; 
+
+
 
 //Create MFRC522 instance
 MFRC522 mfrc522(SS_PIN, RST_PIN);
@@ -21,7 +24,6 @@ MFRC522 mfrc522(SS_PIN, RST_PIN);
 
 
 void setup() {
- boi 
   // Initiating
   SPI.begin(); //Initialize serial communications 
   mfrc522.PCD_Init(); //Initialize MFRC522
@@ -33,19 +35,43 @@ void setup() {
 void loop() {
 
   // Wait untill new tag is available
-  while(getID()){
+  if (getID()) {
     
-    if(inputCard == MasterTag1){
-      Serial.println("Access granted");
-    }
-    else{
-      Serial.println("Access denied");
+     if (!adminMode) {
+        // user mode 
+        for (String card : accessCards) {
+            if (card == inputCard) {
+                cout << "Access granted";
+            }
+        }
+        
+        for (String card : masterCards) {
+            if (card == inputCard) {
+                adminMode = true;
+                // start delay 
+                adminModeDelay();
+            }
+        }
+    } else {
+        // adminMode
+        
+        cout << "new card detected";
+        accessCards.push(inputCard);
+        cout << "new card added";
+        adminMode = false;
     }
 
     delay(2000);
     // Loop begins again and waits for card to be scanned
     
-    }   
+    }  
+
+}
+
+void adminModeDelay() {
+  delay(5000);
+  adminMode = false;
+  Serial.println("Admin mode disabled");
 }
 
 // Read new tag if available. If this function is true, 
